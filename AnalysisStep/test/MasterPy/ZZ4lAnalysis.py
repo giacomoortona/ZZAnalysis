@@ -15,11 +15,6 @@ try:
 except NameError:
     LEPTON_SETUP = 2012 # define the set of effective areas, rho corrections, etc.
 
-#Trigger menu. FIXME : once we have a LEPTON_SETUP for Run II, we probably won't need this separate TRIGGER_SETUP anymore. 
-try:
-    TRIGGER_SETUP
-except NameError:
-    TRIGGER_SETUP = LEPTON_SETUP
 
 try:
     SAMPLE_TYPE
@@ -46,24 +41,6 @@ try:
 except NameError:
     ELEREGRESSION = "Paper"
     
-#Apply muon scale correction
-try:
-    APPLYMUCORR
-except NameError:
-    APPLYMUCORR = True
-
-
-#Mass used for SuperMELA
-try:
-    SUPERMELA_MASS
-except NameError:
-    SUPERMELA_MASS = 125.6
-
-#Selection flow strategy
-try:
-    SELSETUP
-except NameError:
-    SELSETUP = "Legacy"
 
 #Best candidate comparator (see interface/Comparators.h)
 try:
@@ -80,24 +57,7 @@ if SELSETUP=="Legacy" and not BESTCANDCOMPARATOR=="byBestZ1bestZ2":
 ### ----------------------------------------------------------------------
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 
-if (SAMPLE_TYPE == 2011) :
-    if IsMC:
-        process.GlobalTag.globaltag = 'START44_V13::All'
-    else: 
-#        process.GlobalTag.globaltag = 'GR_R_44_V5::All'
-        process.GlobalTag.globaltag = 'GR_R_44_V15C::All'
-#        process.GlobalTag.connect = "sqlite_file:/afs/cern.ch/user/a/alcaprod/public/Alca/GlobalTag/GR_R_44_V15C.db"
-
-else : 
-    if IsMC:
-#        process.GlobalTag.globaltag = 'START53_V7G::All'   #for 53X MC
-#        process.GlobalTag.globaltag = 'START53_V23::All'   #for 53X MC, updated JEC on top of pattuples produced with START53_V7G
-        process.GlobalTag.globaltag = 'PLS170_V6AN1::All'
-    else:
-#        process.GlobalTag.globaltag = 'FT_53_V21_AN3::All' # For 22Jan2013
-#        process.GlobalTag.globaltag = 'FT_53_V21_AN4::All' # For 22Jan2013, updated JEC on top of pattuples produced with FT_53_V21_AN3
-        process.GlobalTag.globaltag = 'GR_70_V2_AN1::All'
-
+process.GlobalTag.globaltag = 'PHYS14_25_V1::All' 
 print process.GlobalTag.globaltag
 
 ### ----------------------------------------------------------------------
@@ -150,37 +110,12 @@ process.hltFilterTriEle.throw = cms.bool(False) #FIXME: beware of this!
 
 # MuEG
 
-if (TRIGGER_SETUP == 2011):
-    # DoubleEle
-    process.hltFilterDiEle.HLTPaths = ["HLT_Ele17_CaloIdT_TrkIdVL_CaloIsoVL_TrkIsoVL_Ele8_CaloIdT_TrkIdVL_CaloIsoVL_TrkIsoVL_v*","HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*","HLT_TripleEle10_CaloIdL_TrkIdVL_v*"] # to run on DATA/MC 2011
-    if (IsMC):
-        # DoubleMu
-        process.hltFilterDiMu.HLTPaths = ["HLT_Mu17_Mu8_v*"] # to run on MC 2011    
-        process.hltFilterMuEle.HLTPaths = ["HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_v*","HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_v*"] # to run on MC 2011
-
-    else :
-        process.hltFilterDiMu.HLTPaths = ["HLT_DoubleMu7_v*", "HLT_Mu13_Mu8_v*", "HLT_Mu17_Mu8_v*"] # to run on DATA 2011 NB: Emulation is needed [FIXME]
-        process.hltFilterMuEle.HLTPaths = ["HLT_Mu17_Ele8_CaloIdL_v*", "HLT_Mu8_Ele17_CaloIdL_v*"] # For run 1-167913
-        process.hltFilterMuEle2.HLTPaths = ["HLT_Mu17_Ele8_CaloIdL_v*", "HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_v*"] # run 167914-175972
-        process.hltFilterMuEle3.HLTPaths = ["HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_v*","HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_v*"] # : run 175973-180252
-        process.triggerMuEle2  = cms.Path(process.hltFilterMuEle2)
-        process.triggerMuEle3  = cms.Path(process.hltFilterMuEle3)
-
-elif (TRIGGER_SETUP == 2012):
-    # DoubleEle
-    process.hltFilterDiEle.HLTPaths = ["HLT_Ele17_CaloIdT_TrkIdVL_CaloIsoVL_TrkIsoVL_Ele8_CaloIdT_TrkIdVL_CaloIsoVL_TrkIsoVL_v*","HLT_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*"] # to run on DATA/MC 2012
-    process.hltFilterDiMu.HLTPaths = ["HLT_Mu17_Mu8_v*", "HLT_Mu17_TkMu8_v*"] # to run on DATA/MC 2012
-    process.hltFilterMuEle.HLTPaths = ["HLT_Mu8_Ele17_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*","HLT_Mu17_Ele8_CaloIdT_CaloIsoVL_TrkIdVL_TrkIsoVL_v*"] # to run on DATA/MC 2012
-    process.hltFilterTriEle.HLTPaths = ["HLT_Ele15_Ele8_Ele5_CaloIdL_TrkIdVL_v*"]
-    process.triggerTriEle  = cms.Path(process.hltFilterTriEle)
-
-elif (TRIGGER_SETUP == 2014):
-    # This is the menu used in the PHYS14 samples, i.e. these paths are temporary and will NOT be used in Run II.
-    process.hltFilterDiEle.HLTPaths = ["HLT_Ele23_Ele12_CaloId_TrackId_Iso_v*"]
-    process.hltFilterDiMu.HLTPaths = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*"]
-    process.hltFilterMuEle.HLTPaths = ["HLT_Mu8_TrkIsoVVL_Ele23_Gsf_CaloId_TrackId_Iso_MediumWP_v*","HLT_Mu23_TrkIsoVVL_Ele12_Gsf_CaloId_TrackId_Iso_MediumWP_v*"]
-    process.hltFilterTriEle.HLTPaths = ["HLT_Ele17_Ele12_Ele10_CaloId_TrackId_v*"]
-    process.triggerTriEle  = cms.Path(process.hltFilterTriEle)
+# This is the menu used in the PHYS14 samples, i.e. these paths are temporary and will NOT be used in Run II.
+process.hltFilterDiEle.HLTPaths = ["HLT_Ele23_Ele12_CaloId_TrackId_Iso_v*"]
+process.hltFilterDiMu.HLTPaths = ["HLT_Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_v*", "HLT_Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_v*"]
+process.hltFilterMuEle.HLTPaths = ["HLT_Mu8_TrkIsoVVL_Ele23_Gsf_CaloId_TrackId_Iso_MediumWP_v*","HLT_Mu23_TrkIsoVVL_Ele12_Gsf_CaloId_TrackId_Iso_MediumWP_v*"]
+process.hltFilterTriEle.HLTPaths = ["HLT_Ele17_Ele12_Ele10_CaloId_TrackId_v*"]
+process.triggerTriEle  = cms.Path(process.hltFilterTriEle)
 
 process.triggerDiMu   = cms.Path(process.hltFilterDiMu)
 process.triggerDiEle  = cms.Path(process.hltFilterDiEle)
@@ -190,34 +125,6 @@ process.triggerMuEle  = cms.Path(process.hltFilterMuEle)
 ### ----------------------------------------------------------------------
 ### MC Filters and tools
 ### ----------------------------------------------------------------------
-
-process.heavyflavorfilter = cms.EDFilter('HeavyFlavorFilter2',
-#                                 src= cms.InputTag("genParticles"), # genParticles available only in PAT
-                                 src= cms.InputTag("genParticlesPruned"),
-                                 status2 = cms.bool(True),
-                                 status3 = cms.bool(False),
-                                 hDaughterVeto = cms.bool(False),
-                                 zDaughterVeto = cms.bool(True),
-                                 ptcut=cms.double(0)
-                                 )
-
-
-process.load("SimGeneral.HepPDTESSource.pythiapdt_cfi")
-process.drawTree = cms.EDAnalyzer("ParticleTreeDrawer",
-                                   src = cms.InputTag("genParticlesPruned"),
-                                   printP4 = cms.untracked.bool(False),
-                                   printPtEtaPhi = cms.untracked.bool(False),
-                                   printVertex = cms.untracked.bool(False),
-                                   printStatus = cms.untracked.bool(True),
-                                   printIndex = cms.untracked.bool(False) )
-
-
-process.printTree = cms.EDAnalyzer("ParticleListDrawer",
-                                   maxEventsToPrint = cms.untracked.int32(-1),
-                                   printVertex = cms.untracked.bool(False),
-                                   src = cms.InputTag("genParticlesPruned")
-                                   )
-
 
 process.RandomNumberGeneratorService = cms.Service("RandomNumberGeneratorService",
                                                    calibratedPatElectrons = cms.PSet(
@@ -254,39 +161,13 @@ GOODLEPTON = "userFloat('ID') && userFloat('SIP')<4" # Lepton passing ID, SIP [I
 #                                               )
 
 
-# Mu e-scale corrections (MuScleFit)
-process.calibratedMuons = cms.EDProducer("MuScleFitPATMuonCorrector", 
-                         src = cms.InputTag("slimmedMuons"), 
-                         debug = cms.bool(False), 
-                         identifier = cms.string("Summer12_DR53X_smearReReco"), 
-                         applySmearing = cms.bool(IsMC), 
-                         fakeSmearing = cms.bool(False)
-                         )
-
-# Set correct identifier for MuScleFit muon corrections
-if LEPTON_SETUP == 2011:
-    if IsMC:
-        process.calibratedMuons.identifier = cms.string("Fall11_START42")
-    else:
-        process.calibratedMuons.identifier = cms.string("Data2011_42X")
-else:
-    if IsMC:
-        process.calibratedMuons.identifier = cms.string("Summer12_DR53X_smearReReco")
-    else:
-        process.calibratedMuons.identifier = cms.string("Data2012_53X_ReReco")
-        
 
 ### Mu Ghost cleaning
 process.cleanedMu = cms.EDProducer("PATMuonCleanerBySegments",
-                                   src = cms.InputTag("calibratedMuons"),
+                                   src = cms.InputTag("slimmedMuons"),
                                    preselection = cms.string("track.isNonnull"),
                                    passthrough = cms.string("isGlobalMuon && numberOfMatches >= 2"),
                                    fractionOfSharedSegments = cms.double(0.499))
-
-if APPLYMUCORR == False :
-    process.cleanedMu.src = cms.InputTag("slimmedMuons")
-
-
 
 process.bareSoftMuons = cms.EDFilter("PATMuonRefSelector",
     src = cms.InputTag("cleanedMu"),
@@ -323,14 +204,7 @@ process.softMuons = cms.EDProducer("MuFiller",
     )
 )
 
-
-if APPLYMUCORR :
-    process.muons =  cms.Sequence(process.calibratedMuons + process.cleanedMu + process.bareSoftMuons + process.softMuons)
-else:
-    process.cleanedMu.src = src = cms.InputTag("slimmedMuons")
-    process.muons =  cms.Sequence(process.cleanedMu + process.bareSoftMuons + process.softMuons)
-    
-
+process.muons =  cms.Sequence(process.cleanedMu + process.bareSoftMuons + process.softMuons)
 
 
 #------- ELECTRONS -------
@@ -348,24 +222,13 @@ process.calibratedPatElectrons.lumiRatio = cms.double(1.0)
 process.calibratedPatElectrons.isMC    = IsMC
 process.calibratedPatElectrons.synchronization = cms.bool(False)
 
-if (LEPTON_SETUP == 2011):
-   process.eleRegressionEnergy.rhoCollection = cms.InputTag('kt6PFJetsForIso:rho')
-   if (IsMC):
-       process.calibratedPatElectrons.inputDataset = "Fall11"
-   else :
-       process.calibratedPatElectrons.inputDataset = "Jan16ReReco"
-else :
-   if (IsMC):
-       process.calibratedPatElectrons.inputDataset = "Summer12_LegacyPaper"
-   else :
-       process.calibratedPatElectrons.inputDataset = "22Jan2013ReReco"
-
+process.calibratedPatElectrons.inputDataset = "Summer12_LegacyPaper"
     
 
 process.bareSoftElectrons = cms.EDFilter("PATElectronRefSelector",
    src = cms.InputTag("calibratedPatElectrons"),
    cut = cms.string("pt>7 && abs(eta)<2.5 &&" +
-                    "gsfTrack.hitPattern().numberOfHits(HitPattern::MISSING_INNER_HITS)<=1"
+                    "userFloat('missingHit')<=1"
                     )
    )
 
@@ -467,7 +330,7 @@ process.appendPhotons = cms.EDProducer("LeptonPhotonMatcher",
 # CAVEAT: merging creates copies of the objects, so that CandViewShallowCloneCombiner is not able to find 
 # overlaps between merged collections and the original ones.
 process.softLeptons = cms.EDProducer("CandViewMerger",
-#    src = cms.VInputTag(cms.InputTag("softMuons"), cms.InputTag("cleanSoftElectrons"))
+#    src = cms.VInputTag(cms.InputTag("muons"), cms.InputTag("electrons"))
     src = cms.VInputTag(cms.InputTag("appendPhotons:muons"), cms.InputTag("appendPhotons:electrons"))
 )
 
@@ -519,46 +382,6 @@ process.ZCand = cms.EDProducer("ZCandidateFiller",
     )
 )
 
-
-# ll, any combination of flavour/charge, for control regions only
-process.bareLLCand = cms.EDProducer("CandViewShallowCloneCombiner",
-    decay = cms.string('softLeptons softLeptons'),
-    cut = cms.string('deltaR(daughter(0).eta, daughter(0).phi, daughter(1).eta, daughter(1).phi)>0.02'), # protect against ghosts
-    checkCharge = cms.bool(False)
-)
-process.LLCand = cms.EDProducer("ZCandidateFiller",
-    src = cms.InputTag("bareLLCand"),
-    sampleType = cms.int32(SAMPLE_TYPE),                     
-    setup = cms.int32(LEPTON_SETUP), # define the set of effective areas, rho corrections, etc.
-    bestZAmong = cms.string(BESTZ_AMONG),
-    flags = cms.PSet(
-        GoodLeptons = cms.string(ZLEPTONSEL),
-        Z1Presel = cms.string(Z1PRESEL),
-    )
-)
-
-
-### ----------------------------------------------------------------------
-### TriLeptons (for fake rate)
-### ----------------------------------------------------------------------
-Z_PLUS_LEP_MIJ=("sqrt(pow(daughter(0).daughter({0}).energy+daughter(1).energy, 2) - " +
-                "     pow(daughter(0).daughter({0}).px    +daughter(1).px, 2) -" +  
-                "     pow(daughter(0).daughter({0}).py    +daughter(1).py, 2) -" +  
-                "     pow(daughter(0).daughter({0}).pz    +daughter(1).pz, 2))")
-
-process.ZlCand = cms.EDProducer("PATCandViewShallowCloneCombiner",
-    decay = cms.string('ZCand softLeptons'),
-    cut = cms.string("deltaR(daughter(0).daughter(0).eta, daughter(0).daughter(0).phi, daughter(1).eta, daughter(1).phi)>0.02 &&" + # Ghost suppression
-                     "deltaR(daughter(0).daughter(1).eta, daughter(0).daughter(1).phi, daughter(1).eta, daughter(1).phi)>0.02 &&" +
-                     ("(daughter(0).daughter(0).charge == daughter(1).charge || %s > 4) && " % ( Z_PLUS_LEP_MIJ.format(0))) +       # mLL>4 for the OS pair (Giovanni's impl)
-                     ("(daughter(0).daughter(1).charge == daughter(1).charge || %s > 4) && " % ( Z_PLUS_LEP_MIJ.format(1))) +
-                     "daughter(0).masterClone.userFloat('isBestZ') &&" +
-                     "daughter(0).masterClone.userFloat('Z1Presel')"
-                     ),
-    checkCharge = cms.bool(False)
-)
-
-
 ### ----------------------------------------------------------------------
 ### Quadrileptons: combine/merge leptons into intermediate (bare) collections;
 ###                Embed additional user variables into final collections
@@ -584,26 +407,9 @@ M4l100            = "mass>100"
 
     
 
-if SELSETUP=="Legacy": # Default Configuration (Legacy paper): cut on selected best candidate
-
-    BESTCAND_AMONG = (FOURGOODLEPTONS + "&&" +
-                      HASBESTZ        + "&&" +
-                      Z1MASS          
-                      )
-    
-    FULLSEL70           = (FOURGOODLEPTONS + "&&" +
-                           HASBESTZ        + "&&" +
-                           Z1MASS          + "&&" +
-                           Z2MASS          + "&&" +
-                           MLLALLCOMB      + "&&" +
-                           PT20_10         + "&&" +
-                           "mass>70"        + "&&" +
-                           "daughter('Z2').mass>12")
 
 
-elif SELSETUP=="allCutsAtOnce": # Select best candidate among those passing all cuts
-
-    BESTCAND_AMONG = (FOURGOODLEPTONS + "&&" +
+BESTCAND_AMONG = (FOURGOODLEPTONS + "&&" +
                       Z1MASS          + "&&" +
                       Z2MASS          + "&&" +
                       MLLALLCOMB      + "&&" +
@@ -612,57 +418,8 @@ elif SELSETUP=="allCutsAtOnce": # Select best candidate among those passing all 
                       "daughter('Z2').mass>12"
                       )
 
-    FULLSEL70 = BESTCAND_AMONG
+FULLSEL70 = BESTCAND_AMONG
 
-
-
-elif SELSETUP=="allCutsAtOnceButMZ2": # Select best candidate among those passing all cuts except mZ2, leave only mZ2 cut at the end
-
-    BESTCAND_AMONG = (FOURGOODLEPTONS + "&&" +
-                      Z1MASS          + "&&" +
-                      Z2MASS          + "&&" +
-                      MLLALLCOMB      + "&&" +
-                      PT20_10         + "&&" +
-                      "mass>70"                        
-                      )
-
-    FULLSEL70           = (BESTCAND_AMONG + "&&" +
-                           "daughter('Z2').mass>12")
-                          
-                                                                                                                                                                                      
-
-elif SELSETUP=="allCutsAtOncePlusMZb": # Apply also cut on mZb, -> expected to reduce the background but also signal efficiency
-
-    BESTCAND_AMONG = (FOURGOODLEPTONS + "&&" +
-                      Z1MASS          + "&&" +
-                      Z2MASS          + "&&" +
-                      MLLALLCOMB      + "&&" +
-                      PT20_10         + "&&" +
-                      "mass>70"       + "&&" +
-                      "userFloat('mZb')>12" + "&&" +
-                      "daughter('Z2').mass>12"
-                      )
-
-    FULLSEL70 = BESTCAND_AMONG
-
-elif SELSETUP=="allCutsAtOncePlusSmart": # Apply smarter mZb cut
-
-    BESTCAND_AMONG = (FOURGOODLEPTONS + "&&" +
-                      Z1MASS          + "&&" +
-                      Z2MASS          + "&&" +
-                      MLLALLCOMB      + "&&" +
-                      PT20_10         + "&&" +
-                      "mass>70"       + "&&" +
-                      SMARTMALLCOMB + "&&" +
-                      "daughter('Z2').mass>12"
-                      )
-
-    FULLSEL70 = BESTCAND_AMONG
-
-
-else:
-    print "Please choose one of the following string for SELSETUP: 'Legacy', 'allCutsAtOnceButMZ2', 'allCutsAtOnce', 'allCutsAtOncePlusMZb', 'allCutsAtOncePlusSmart'"
-    sys.exit()
 
 
 FULLSEL            = (FULLSEL70      + "&&" +
@@ -706,318 +463,6 @@ process.ZZCand = cms.EDProducer("ZZCandidateFiller",
         FullSel = cms.string(FULLSEL),
     )
 )
-
-
-### ----------------------------------------------------------------------
-### Z+LL Control regions.
-### By constryction, daughter(0) is the Z, daughter(1) the LL pair.
-### By setting ZRolesByMass = False, daugther('Z1') is set as daughter(0),
-### so we can use the same cuts as for the SR.
-### ----------------------------------------------------------------------
-
-Z2MM = "abs(daughter(1).daughter(0).pdgId()*daughter(1).daughter(1).pdgId())==169" #Z2 = mumu
-Z2EE = "abs(daughter(1).daughter(0).pdgId()*daughter(1).daughter(1).pdgId())==121" #Z2 = ee
-Z2LL_SS = "daughter(1).daughter(0).pdgId()==daughter(1).daughter(1).pdgId()"       #Z2 = same-sign, same-flavour
-Z2MM_OS = "daughter(1).daughter(0).pdgId()*daughter(1).daughter(1).pdgId()==-169" #Z2 = mu+mu-
-Z2MM_SS = "daughter(1).daughter(0).pdgId()*daughter(1).daughter(1).pdgId()== 169" #Z2 = mu-mu-/mu+mu+
-Z2EE_OS = "daughter(1).daughter(0).pdgId()*daughter(1).daughter(1).pdgId()==-121" #Z2 = e+e-
-Z2EE_SS = "daughter(1).daughter(0).pdgId()*daughter(1).daughter(1).pdgId()== 121" #Z2 = e-e-/e+e+
-Z2ID    = "userFloat('d1.d0.ID')     && userFloat('d1.d1.ID')"                    #ID on LL leptons
-Z2SIP   = "userFloat('d1.d0.SIP')< 4 && userFloat('d1.d1.SIP')< 4"                #SIP on LL leptons
-CR_Z2MASS = "daughter(1).mass>4  && daughter(1).mass<120"                        #Mass on LL; cut at 4
-
-CR_BASESEL = (CR_Z2MASS + "&&" +              # mass cuts on LL
-              MLLALLCOMB + "&&" +             # mass cut on all lepton pairs
-              PT20_10    + "&&" +             # pT> 20/10 over all 4 l
-              "daughter(1).mass>12 &&" +      # mZ2 >12
-              M4l100 )                        # m4l>100 
-
-CR_BESTCANDBASE = ("userFloat('d0.Z1Presel')") # Z with good leptons, mass cuts
-
-CR_BESTCANDBASE_AA   = ("userFloat('d0.Z1Presel') && " + Z2SIP) # base for AA CR
-
-CR_BESTZLLss = ""
-if SELSETUP == "Legacy":
-    CR_BESTZLLss = CR_BESTCANDBASE_AA + "&&" + "userFloat('d0.isBestZ') &&"+ Z2LL_SS
-elif SELSETUP == "allCutsAtOnceButMZ2":
-    CR_BESTZLLss = CR_BESTCANDBASE_AA + "&&" + Z2LL_SS + "&&" +CR_Z2MASS + "&&" + MLLALLCOMB + "&&" + PT20_10 + "&& mass>70"
-elif SELSETUP == "allCutsAtOnce":
-    CR_BESTZLLss = CR_BESTCANDBASE_AA + "&&" + Z2LL_SS + "&&" +CR_Z2MASS + "&&" + MLLALLCOMB + "&&" + PT20_10 + "&&" + "mass>70" + "&&" + "daughter(1).mass>12"
-elif SELSETUP == "allCutsAtOncePlusMZb":
-    CR_BESTZLLss = CR_BESTCANDBASE_AA + "&&" + Z2LL_SS + "&&" +CR_Z2MASS + "&&" + MLLALLCOMB + "&&" + PT20_10 + "&&" + "mass>70" + "&&" + "daughter(1).mass>12" + "&&" + "userFloat('mZb')>12" 
-elif SELSETUP == "allCutsAtOncePlusSmart":
-    CR_BESTZLLss = CR_BESTCANDBASE_AA + "&&" + Z2LL_SS + "&&" +CR_Z2MASS + "&&" + MLLALLCOMB + "&&" + PT20_10 + "&&" + "mass>70" + "&&" + "daughter(1).mass>12" + "&&" + SMARTMALLCOMB
-
-
-
-# Z (OSSF,both e/mu) + LL (any F/C, with no ID/iso); this is the starting point for control regions
-process.bareZLLCand= cms.EDProducer("CandViewShallowCloneCombiner",
-    decay = cms.string('ZCand LLCand'),
-    cut = cms.string(NOGHOST4l), #Note that LLLLPRESEL cannot be used here
-    checkCharge = cms.bool(False)
-)
-process.ZLLCand = cms.EDProducer("ZZCandidateFiller",
-    src = cms.InputTag("bareZLLCand"),
-    sampleType = cms.int32(SAMPLE_TYPE),
-    superMelaMass = cms.double(SUPERMELA_MASS),
-    isMC = cms.bool(IsMC),
-    bestCandComparator = cms.string(BESTCANDCOMPARATOR),
-    bestCandAmong = cms.PSet(
-      isBestCand    = cms.string("0"), #do not set SR best cand flag
-      isBestCRZLL = cms.string(CR_BESTCANDBASE+ "&&" + # Old CR for Z2 with no SIP
-                         "userFloat('d0.isBestZ') &&"+
-                         Z2ID
-                         ),
-      isBestCRZMM = cms.string(CR_BESTCANDBASE + "&&" + # For HiSip CRs
-                         "userFloat('d0.isBestZ') &&" +
-                         Z2MM                  + "&&" +
-                         Z2ID      
-                         ),
-      isBestCRZEE = cms.string(CR_BESTCANDBASE + "&&" + # For HiSip CRs
-                         "userFloat('d0.isBestZ') &&" +
-                         Z2EE                  + "&&" +
-                         Z2ID      
-                         ),
-      #CRZLLHiSIP = cms.string(CR_BESTCANDBASE + "&&" +
-      #                        "userFloat('d0.isBestZ')"
-      #                        ),
-      #CRZLLHiSIPMM = cms.string(CR_BESTCANDBASE +
-      #                          "userFloat('d0.isBestZ') &&" +
-      #                          Z2MM
-      #                          ),
-      isBestCRZLLHiSIPKin = cms.string("userFloat('d0.isBestZ') &&" +
-                                 Z2ID
-                                 ), 
-
-      ## AA method CRs
-      isBestCRMMMMss = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZmm') &&" +
-                          Z2MM_SS
-                          ),
-      isBestCRMMMMos = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZmm') &&" +
-                          Z2MM_OS
-                          ),
-      isBestCREEEEss = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZee') &&" +
-                          Z2EE_SS
-                          ),
-      isBestCREEEEos = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZee') &&" +
-                          Z2EE_OS
-                          ),
-      isBestCREEMMss = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZee') &&" +
-                          Z2MM_SS
-                          ),
-      isBestCREEMMos = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZee') &&" +
-                          Z2MM_OS
-                          ),
-      isBestCRMMEEss = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZmm') &&" +
-                          Z2EE_SS
-                          ),
-      isBestCRMMEEos = cms.string(CR_BESTCANDBASE_AA + "&&" +
-                          "userFloat('d0.isBestZmm') &&" +
-                          Z2EE_OS
-                          ),
-      isBestCRZLLss = cms.string(CR_BESTZLLss),
-    ),
-    ZRolesByMass = cms.bool(False),  # daughter('Z1') = daughter(0)
-    flags = cms.PSet(
-      SR = cms.string(BESTCAND_AMONG),
-      CRZLL =  cms.string(CR_BASESEL),                                 # with isBestCRZLL flag = no SIP CR
-      CRZLLHiSIP = cms.string(PT20_10 + "&&" +                         # with isBestCRZLL flag = inverted SIP CR
-                              "userFloat('d1.d0.SIP')> 5 && " +
-                              "userFloat('d1.d1.SIP')> 5 " 
-                              ),
-      CRZLLHiSIPKin = cms.string(CR_BASESEL + "&&" +                   # with isBestCRZLLHiSIPKin
-                                 "userFloat('d1.d0.SIP')> 5 &&" +
-                                 "userFloat('d1.d1.SIP')> 5"
-                                 ), 
-      CRLLLL = cms.string(CR_BASESEL               #combine with proper isBestCR*****s for AA ss/os CRss
-                          ),
-      )
-)
-
-
-
-# Extended Phase space: Z1 + LL (L=any F/C; ID, no ISO/SIP requirements)
-#process.CRZEE = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('isCRZLL')>0 && userFloat('CRZEE')>0"),
-#)
-#process.CRZMM = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('isCRZLL')>0 && userFloat('CRZMM')>0"),
-#)
-#process.CRZLL = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('isCRZLL')>0 && userFloat('CRZLL')>0"),
-#)
-
-
-# Inverted-SIP CR, for Zbb/tt control
-#process.CRZLLHiSIP = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string( #"userFloat('d0.isBestZ') && " +
-                          #"userFloat('d0.Z1Presel') && " +
-                          #PT20_10    + "&&"   +
-                          #Z2ID       + "&&" + # ID on LL
-#                          "userFloat('d1.d0.SIP')> 5 && " +
-#                          "userFloat('d1.d1.SIP')> 5 " 
-#                          )
-#)
-
-
-#process.CRZLLHiSIPMM = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string( #"userFloat('d0.isBestZ') && " +
-                          #"userFloat('d0.Z1Presel') && " +
-                          #PT20_10    + "&&"   +
-                          #Z2MM       + "&&" + # Flavour on LL
-                          #Z2ID       + "&&" + # ID on LL
-#                          "userFloat('d1.d0.SIP')> 5 && " +
-#                          "userFloat('d1.d1.SIP')> 5 " 
-#                          )
-#)
-
-# Inverted-SIP CR, for Zbb/tt control; with kin cuts
-#process.CRZLLHiSIPKin = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string( #"userFloat('d0.isBestZ') && " +
-                          #CR_BASESEL + "&&" +
-                          #Z2ID       + "&&" + # ID on LL
-#                          "userFloat('d1.d0.SIP')> 5 &&" +
-#                          "userFloat('d1.d1.SIP')> 5"
-#                         )
-#)
-
-# Z1->MM + MM (SS fakeable (no ID, no ISO)); for Z+X
-#process.CRMMMMss = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('isCRLLLL')>0 && userFloat('CRMMMMss')>0"),
-#)
-
-# Z1->MM + MM (OS fakeable (no ID, no ISO)); crosscheck
-#process.CRMMMMos = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZmm') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2MM_OS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-# Z1->EE + EE (SS fakeable (no ID, no ISO)); for Z+X
-#process.CREEEEss = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZee') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2EE_SS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-# Z1->EE + EE (OS fakeable (no ID, no ISO)); crosscheck
-#process.CREEEEos = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZee') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2EE_OS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-# Z1->EE + MM (SS fakeable (no ID, no ISO)); for Z+X
-#process.CREEMMss = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZee') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2MM_SS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-# Z1->EE + MM (OS fakeable (no ID, no ISO)); crosscheck
-#process.CREEMMos = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZee') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2MM_OS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-# Z1->MM + EE (SS fakeable (no ID, no ISO)); for Z+X
-#process.CRMMEEss = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZmm') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2EE_SS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-# Z1->MM + EE (OS fakeable (no ID, no ISO)); crosscheck
-#process.CRMMEEos = cms.EDFilter("PATCompositeCandidateRefSelector",
-#	src = cms.InputTag("ZLLCand"),
-#        cut = cms.string("userFloat('d0.isBestZmm') && " +
-#                         CR_BASESEL + "&&" +
-#                         Z2EE_OS    + "&&" +
-#                         Z2SIP
-#                         )
-#)
-
-
-
-# LLLL, any F/C, to be used for the Relaxing-Flavour&Charge (RFC) test only.
-# Note that while this is a superset of all quadrilepton collections, the
-# assigment of the flag isBestCand card is different gere, as the "best Z" is chosen
-# within the LL candidates (any F/C), and not within the MM or EE collections!
-process.bareLLLLCand= cms.EDProducer("CandViewShallowCloneCombiner",
-    decay = cms.string('LLCand LLCand'),
-    cut = cms.string(NOGHOST4l),
-    checkCharge = cms.bool(False)
-)
-process.LLLLCand = cms.EDProducer("ZZCandidateFiller",
-    src = cms.InputTag("bareLLLLCand"),
-    sampleType = cms.int32(SAMPLE_TYPE),
-    superMelaMass = cms.double(SUPERMELA_MASS),
-    isMC = cms.bool(IsMC),
-    bestCandAmong = cms.PSet(isBestCand = cms.string(BESTCAND_AMONG)), #FIXME should ask d0.isBestInColl
-    flags = cms.PSet(
-        GoodLeptons =  cms.string(FOURGOODLEPTONS),
-        Z2Mass  = cms.string(Z2MASS),
-        MAllComb = cms.string(MLLALLCOMB),
-        FullSel70 = cms.string(FULLSEL70),
-        FullSel = cms.string(FULLSEL),
-    )
-)
-
-
-### ----------------------------------------------------------------------
-### Recorrect jets
-### ----------------------------------------------------------------------
-
-UPDATE_JETS = False 
-
-if (UPDATE_JETS and LEPTON_SETUP==2012) :
-#    from CMGTools.Common.miscProducers.cmgPFJetCorrector_cfi import cmgPFJetCorrector
-    process.cmgPFJetSel = cms.EDProducer( "PFJetCorrector",
-                                        # make sure your jet and rho collections are compatible
-                                        src = cms.InputTag( 'slimmedJets' ),
-                                        rho = cms.InputTag( 'kt6PFJets:rho:RECO' ),
-                                        vertices = cms.InputTag('offlinePrimaryVertices'),
-                                        payload = cms.string('AK5PF'),
-                                        levels = cms.vstring('L1FastJet','L2Relative','L3Absolute'),
-                                        sort = cms.bool(True),
-                                        verbose = cms.untracked.bool( False ))    
-    if not IsMC:
-        process.cmgPFJetSel.levels = ['L1FastJet','L2Relative','L3Absolute','L2L3Residual']
-
-#        print 'Correction levels', process.cmgPFJetSel.levels
 
 
 ### ----------------------------------------------------------------------
